@@ -16,7 +16,7 @@ import UserDashboard from "./pages/users/UserDashboard";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserBlog from "./pages/users/UserBlog";
-import UserBlogsAll from "./pages/users/UserBlogsAll";
+import UserBlogsAll from "./pages/users/UserBlogsall";
 import AdminBlogs from "./pages/admin/AdminBlogs";
 
 
