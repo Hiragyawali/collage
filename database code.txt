@@ -1,21 +1,67 @@
--- create database
-CREATE DATABASE IF NOT EXISTS educational_blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE educational_blog;
+-- Create database
+CREATE DATABASE IF NOT EXISTS edublog;
 
--- users table
+-- Use database
+USE edublog;
+
+-- Users table
 CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL, -- password_hash
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- tokens table (simple token store for API auth)
-CREATE TABLE IF NOT EXISTS api_tokens (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  token VARCHAR(64) NOT NULL UNIQUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE DATABASE IF NOT EXISTS edublog;
+USE edublog;
+
+CREATE TABLE IF NOT EXISTS user_blogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    tags VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    pdf_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+-- Blogs table
+CREATE TABLE IF NOT EXISTS user_blogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    tags VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    pdf_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comments table
+CREATE TABLE IF NOT EXISTS blog_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    blog_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_id) REFERENCES user_blogs(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS blog_likes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    blog_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_like (blog_id, user_id),
+    FOREIGN KEY (blog_id) REFERENCES user_blogs(id)
+);
+ALTER TABLE user_blogs 
+ADD COLUMN is_approved TINYINT(1) DEFAULT 0;
+
+

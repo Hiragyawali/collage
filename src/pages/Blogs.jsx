@@ -1,68 +1,139 @@
-import React from "react";
-import BlogCard from "../components/BlogCard";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Blogs() {
-  // Placeholder posts until backend is connected
-  const posts = [
-    {
-      title: "10 Tips for Effective Studying",
-      author: "Jane Smith",
-      date: "October 31, 2023",
-      category: "Education",
-      excerpt: "Learn how to improve your study habits and retain information better.",
-      image: "https://source.unsplash.com/200x150/?student,study"
-    },
-    {
-      title: "Benefits of Online Learning",
-      author: "John Doe",
-      date: "November 9, 2023",
-      category: "Education",
-      excerpt: "Online learning offers flexibility and accessibility for all learners.",
-      image: "https://source.unsplash.com/200x150/?laptop,learning"
-    },
-    {
-      title: "Effective Time Management",
-      author: "Alice Johnson",
-      date: "October 15, 2023",
-      category: "Productivity",
-      excerpt: "Time management tips for students and professionals alike.",
-      image: "https://source.unsplash.com/200x150/?time,planning"
-    },
-    {
-      title: "How to Stay Motivated",
-      author: "Michael Lee",
-      date: "November 1, 2023",
-      category: "Motivation",
-      excerpt: "Simple strategies to keep your motivation high and stay focused.",
-      image: "https://source.unsplash.com/200x150/?motivation,focus"
-    },
-    {
-      title: "Top 5 Online Learning Platforms",
-      author: "Sara Khan",
-      date: "October 20, 2023",
-      category: "Education",
-      excerpt: "A guide to the best online platforms for learning new skills.",
-      image: "https://source.unsplash.com/200x150/?online,learning"
-    }
-  ];
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [commentText, setCommentText] = useState({});
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user")) || null;
+
+  // Fetch all blogs
+  const fetchBlogs = () => {
+    fetch("http://localhost/api/get_all_blogs.php")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setBlogs(data.blogs || []);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  // Handle like
+  const handleLike = (blogId) => {
+    if (!user) return navigate("/login"); // redirect if not logged in
+
+    const formData = new FormData();
+    formData.append("blog_id", blogId);
+    formData.append("user_id", user.id);
+
+    fetch("http://localhost/api/like_blog.php", {
+      method: "POST",
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then(() => fetchBlogs())
+      .catch(() => alert("Error liking blog"));
+  };
+
+  // Handle comment input change
+  const handleCommentChange = (blogId, value) => {
+    setCommentText((prev) => ({ ...prev, [blogId]: value }));
+  };
+
+  // Handle add comment
+  const handleAddComment = (blogId) => {
+    if (!user) return navigate("/login"); // redirect if not logged in
+    const comment = commentText[blogId]?.trim();
+    if (!comment) return alert("Comment cannot be empty.");
+
+    fetch("http://localhost/api/add_comment.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blog_id: blogId, user_id: user.id, comment }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCommentText((prev) => ({ ...prev, [blogId]: "" }));
+          fetchBlogs();
+        } else {
+          alert(data.message || "Failed to add comment");
+        }
+      })
+      .catch(() => alert("Error adding comment"));
+  };
+
+  if (loading)
+    return <p className="text-center mt-10">Loading blogs...</p>;
 
   return (
-    <div className="container mx-auto px-6 py-10 flex flex-col lg:flex-row gap-8">
-      {/* Main Blog List */}
-      <div className="w-full lg:w-2/3">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">All Blogs</h1>
+    <div className="max-w-6xl mx-auto px-4 py-12">
+      <h1 className="text-3xl font-bold text-indigo-700 mb-6">All Blogs</h1>
 
-        <div className="grid gap-6">
-          {posts.map((post, index) => (
-            <BlogCard key={index} {...post} />
+      {blogs.length === 0 ? (
+        <p className="text-gray-500 text-center">No blogs have been posted yet.</p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-8">
+          {blogs.map((blog) => (
+            <div
+              key={`blog-${blog.id}`}
+              className="bg-white p-5 rounded-xl shadow-md border hover:shadow-lg transition-all"
+            >
+              <h2 className="text-2xl font-semibold text-indigo-600">{blog.title}</h2>
+              <p className="text-sm text-gray-500">{blog.category} | Tags: {blog.tags}</p>
+              <p className="mt-3 text-gray-700">{blog.description}</p>
+
+              {blog.pdf_path && (
+                <a
+                  href={`http://localhost/api/uploads/${blog.pdf_path}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-indigo-600 mt-3 inline-block font-medium hover:underline"
+                >
+                  📄 Download PDF
+                </a>
+              )}
+
+              {/* Like + Comment Section */}
+              <div className="mt-4 flex items-center justify-between">
+                <button
+                  onClick={() => handleLike(blog.id)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md text-white bg-indigo-600"
+                >
+                  ❤️ {blog.likes || 0}
+                </button>
+                <span className="text-gray-600 text-sm">
+                  💬 {blog.comments_count || 0} Comments
+                </span>
+              </div>
+
+              {/* Comment input */}
+              <div className="mt-3">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={commentText[blog.id] || ""}
+                  onChange={(e) => handleCommentChange(blog.id, e.target.value)}
+                  className="border p-2 rounded w-full mb-2"
+                />
+                <button
+                  onClick={() => handleAddComment(blog.id)}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Post Comment
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* Sidebar */}
-      <Sidebar />
+      )}
     </div>
   );
 }
