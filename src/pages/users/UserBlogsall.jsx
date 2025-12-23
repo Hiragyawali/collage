@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function UserBlogsAll() {
+export default function UserBlogsall() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState({});
   const [expandedComments, setExpandedComments] = useState({});
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+
   const user = JSON.parse(localStorage.getItem("user")) || null;
+  const navigate = useNavigate();
 
   const fetchBlogs = () => {
     const url = user?.isAdmin
@@ -28,6 +33,15 @@ export default function UserBlogsAll() {
       })
       .catch(() => setLoading(false));
   };
+
+  useEffect(() => fetchBlogs(), []);
+
+  const filteredBlogs = blogs.filter(blog => {
+    const matchesSearch = blog.title.toLowerCase().includes(search.toLowerCase()) ||
+      blog.tags.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter === "All" || blog.category.toLowerCase() === categoryFilter.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
 
   const handleLike = (blogId) => {
     if (!user) return alert("Please login to like a blog.");
@@ -60,9 +74,7 @@ export default function UserBlogsAll() {
         if (data.success) {
           setCommentText(prev => ({ ...prev, [blogId]: "" }));
           fetchBlogs();
-        } else {
-          alert("Failed to add comment.");
-        }
+        } else alert("Failed to add comment.");
       })
       .catch(() => alert("Error adding comment"));
   };
@@ -71,7 +83,6 @@ export default function UserBlogsAll() {
     if (!user) return;
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
 
-    // Only allow deletion if current user is comment author OR blog owner
     if (user.id !== commentUserId && user.id !== blogOwnerId) {
       return alert("You don't have permission to delete this comment.");
     }
@@ -89,22 +100,59 @@ export default function UserBlogsAll() {
     setExpandedComments(prev => ({ ...prev, [blogId]: !prev[blogId] }));
   };
 
-  useEffect(() => fetchBlogs(), []);
+  const handleReadMore = (blogId) => {
+  navigate(`/user-dashboard/blogs/${blogId}`);
+};
+
 
   if (loading) return <p className="text-center mt-10">Loading blogs...</p>;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold text-indigo-700 mb-6">All Blogs</h1>
-      {blogs.length === 0 ? (
+
+      {/* Search & Filter */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search by title, tag..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="border p-2 rounded w-full md:w-1/2"
+        />
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="border p-2 rounded w-full md:w-1/4"
+        >
+          <option value="All">All Categories</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Programming">Programming</option>
+          <option value="Motivation">Motivation</option>
+          <option value="Study">Study</option>
+        </select>
+      </div>
+
+      {filteredBlogs.length === 0 ? (
         <p className="text-gray-500 text-center">No blogs available.</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-8">
-          {blogs.map(blog => (
-            <div key={`blog-${blog.id}`} className="bg-white p-5 rounded-xl shadow-md border">
+          {filteredBlogs.map(blog => (
+            <div key={`blog-${blog.id}`} className="bg-white p-5 rounded-xl shadow-md border flex flex-col">
               <h2 className="text-xl font-semibold text-indigo-600">{blog.title}</h2>
               <p className="text-sm text-gray-500">{blog.category} | Tags: {blog.tags}</p>
-              <p className="mt-2 text-gray-700">{blog.description}</p>
+
+              {/* Short description (2 lines) */}
+              <p className="mt-2 text-gray-700 line-clamp-2">{blog.description}</p>
+              {blog.description.length > 150 && (
+                <button
+                  onClick={() => handleReadMore(blog.id)}
+                  className="text-indigo-600 text-sm mt-1 self-start"
+                >
+                  Read More
+                </button>
+              )}
 
               {blog.pdf_path && (
                 <a href={`http://localhost/api/uploads/${blog.pdf_path}`} target="_blank" rel="noreferrer" className="text-indigo-600 mt-2 inline-block">
@@ -121,6 +169,7 @@ export default function UserBlogsAll() {
                 </button>
               </div>
 
+              {/* Comments */}
               <div className="mt-4">
                 <h3 className="font-semibold">Comments:</h3>
                 {blog.comments.length === 0 ? (
@@ -156,6 +205,7 @@ export default function UserBlogsAll() {
                 )}
               </div>
 
+              {/* Add Comment */}
               <div className="mt-3">
                 <input
                   type="text"

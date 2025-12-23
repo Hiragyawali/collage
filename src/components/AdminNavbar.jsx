@@ -13,10 +13,10 @@ export default function AdminNavbar() {
   return (
     <nav className="bg-red-600 text-white p-4 shadow-md">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div className="font-bold text-xl">Admin Panel</div>
+        <div className="font-bold text-xl "><Link to="/admin/dashboard" className="hover:underline">Admin Panel </Link></div>
         <ul className="flex space-x-6 items-center">
           <li>Hello, {admin.name || 'Admin'}</li>
-          <li><Link to="/admin/dashboard/blogs" className="hover:underline">Blogs</Link></li>
+          <li><Link to="/admin/blogs" className="hover:underline">Blogs</Link></li>
           <li><Link to="/admin/reports" className="hover:underline">Reports</Link></li>
           <li><button onClick={handleLogout} className="bg-white text-red-600 px-3 py-1 rounded-md hover:bg-gray-200">Logout</button></li>
         </ul>

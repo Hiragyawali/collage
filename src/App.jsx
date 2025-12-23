@@ -18,7 +18,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserBlog from "./pages/users/UserBlog";
 import UserBlogsAll from "./pages/users/UserBlogsall";
 import AdminBlogs from "./pages/admin/AdminBlogs";
-
+import UserProfile from "./pages/users/UserProfile";
+import BlogDetail from "./pages/users/BlogDetail";
+import EditUserBlog from "./pages/users/EditUserBlog";
+import AdminReports from "./pages/admin/AdminReports";
 
 export default function App() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -36,25 +39,69 @@ export default function App() {
 
       <main className="flex-grow">
         <Routes>
+          
           {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/blogs" element={<Blogs />} />
 
-          <Route path="/register" element={user ? <Navigate to="/user-dashboard" /> : <Register />} />
-          <Route path="/login" element={user ? <Navigate to="/user-dashboard" /> : <Login />} />
+          <Route
+            path="/register"
+            element={user ? <Navigate to="/user-dashboard" /> : <Register />}
+          />
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/user-dashboard" /> : <Login />}
+          />
 
           {/* User dashboard routes */}
-          <Route path="/user-dashboard" element={user ? <UserDashboard /> : <Navigate to="/login" />} />
-          <Route path="/user-dashboard/new-blog" element={user ? <UserBlog /> : <Navigate to="/login" />} />
-          <Route path="/user-dashboard/blogs" element={user ? <UserBlogsAll /> : <Navigate to="/login" />} />
+          <Route
+            path="/user-dashboard"
+            element={user ? <UserDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/user-dashboard/new-blog"
+            element={user ? <UserBlog /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/user-dashboard/blogs"
+            element={user ? <UserBlogsAll /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/user-dashboard/profile"
+            element={user ? <UserProfile /> : <Navigate to="/login" />}
+          />
+<Route
+  path="/user-dashboard/blogs/:id"
+  element={user ? <BlogDetail /> : <Navigate to="/login" />}
+/>
+<Route
+  path="/user-dashboard/edit-blog/:id"
+  element={user ? <EditUserBlog /> : <Navigate to="/login" />}
+/>
+
 
           {/* Admin routes */}
-          <Route path="/admin/login" element={admin ? <Navigate to="/admin/dashboard" /> : <AdminLogin />} />
-          <Route path="/admin/dashboard" element={admin ? <AdminDashboard /> : <Navigate to="/admin/login" />} />
-           <Route path="/admin/dashboard/blogs" element={<AdminBlogs />} />
+          <Route
+            path="/admin/login"
+            element={admin ? <Navigate to="/admin/dashboard" /> : <AdminLogin />}
+          />
+          <Route
+            path="/admin/dashboard"
+            element={admin ? <AdminDashboard /> : <Navigate to="/admin/login" />}
+          />
+          {/* Updated route to match AdminDashboard navigation */}
+          <Route
+            path="/admin/blogs"
+            element={admin ? <AdminBlogs /> : <Navigate to="/admin/login" />}
+          />
+           <Route
+            path="/admin/reports"
+            element={admin ? <AdminReports /> : <Navigate to="/admin/login" />}
+          />
         </Routes>
+        
       </main>
 
       {/* Footer */}
